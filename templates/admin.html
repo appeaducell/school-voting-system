@@ -1,0 +1,339 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div style="display:flex; min-height:500px;">
+
+<!-- SIDEBAR -->
+<div style="width:220px; background:#0d6efd; color:white; padding:15px;">
+    <h4>Admin Panel</h4>
+
+    <button onclick="showSection('dashboard')" class="btn btn-light w-100 mb-2">Dashboard</button>
+    <button onclick="showSection('students')" class="btn btn-light w-100 mb-2">Students</button>
+    <button onclick="showSection('portfolios')" class="btn btn-light w-100 mb-2">Portfolios</button>
+    <button onclick="showSection('candidates')" class="btn btn-light w-100 mb-2">Candidates</button>
+    
+    <a href="/results" class="btn btn-warning w-100 mt-3">Results</a>
+    <a href="/export_results" class="btn btn-success w-100 mt-2"> 📥 Export Results Excel</a>
+    <a href="/charts" class="btn btn-info w-100 mt-2"> 📊 Results Charts </a>     <a href="/settings" class="btn btn-secondary w-100 mt-2">Settings</a>
+    <a href="/logout" class="btn btn-danger w-100 mt-2">Logout</a>
+
+
+</div>
+
+<!-- MAIN CONTENT -->
+<div style="flex:1; padding:20px;">
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="section">
+    <h3>Dashboard</h3>
+    <p>Total Students: {{ students|length }}</p>
+    <p>Total Candidates: {{ candidates|length }}</p>
+    <p>Total Portfolios: {{ portfolios|length }}</p>
+<div class="row mb-4">
+
+    <div class="col-md-4">
+        <div class="card p-3 text-center shadow-sm">
+            <h5>Total Students</h5>
+            <h2>{{ total_students }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 text-center shadow-sm">
+            <h5>Students Voted</h5>
+            <h2>{{ voted_students }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 text-center shadow-sm">
+            <h5>Not Yet Voted</h5>
+            <h2>{{ not_voted }}</h2>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<!-- STUDENTS MODULE -->
+<div id="students" class="section" style="display:none;">
+    <h3>Students</h3>
+
+    <!-- Upload Excel -->
+    <form method="post" action="/upload_students" enctype="multipart/form-data">
+        <input type="file" name="file" class="form-control mb-2" required>
+        <button class="btn btn-primary">Upload Excel</button>
+    </form>
+
+    <br>
+
+    <!-- BULK DELETE FORM -->
+    <form method="post" action="/delete_students">
+
+        <button type="submit"
+                onclick="return confirm('Delete selected students?')"
+                class="btn btn-danger mb-2">
+            Delete Selected
+        </button>
+
+        <button type="button"
+                onclick="toggleSelectAll()"
+                class="btn btn-secondary mb-2">
+            Select All
+        </button>
+
+        <!-- Toggle visibility -->
+        <button type="button"
+                onclick="toggleStudents()"
+                class="btn btn-info mb-2">
+            Show / Hide Students
+        </button>
+
+<input type="text"
+       id="studentSearch"
+       onkeyup="findStudent()"
+       placeholder="Search student by ID or name..."
+       class="form-control mb-3">
+
+        <!-- Student List -->
+<ul id="studentList"
+    style="display:none; list-style:none; padding-left:0;">
+        {% for s in students %}
+<li class="mb-1">
+
+    <input type="checkbox"
+           name="student_ids"
+           value="{{ s[0] }}">
+
+    {{ s[1] }} ({{ s[0] }})
+
+    <!-- DELETE -->
+    <a href="/delete_student/{{ s[0] }}"
+       onclick="return confirm('Delete this student?')"
+       class="btn btn-sm btn-outline-danger ms-2">
+       Delete
+    </a>
+
+    <!-- RESET VOTE -->
+    <a href="/reset_student/{{ s[0] }}"
+       onclick="return confirm('Reset this student voting?')"
+       class="btn btn-sm btn-info ms-1">
+       Reset Vote
+    </a>
+
+</li>
+        {% endfor %}
+        </ul>
+
+    </form>
+
+<a href="/download_students"
+   class="btn btn-success mb-2">
+   📥 Download Student List
+</a>
+
+</div>
+
+<!-- PORTFOLIOS -->
+<div id="portfolios" class="section" style="display:none;">
+    <h3>Portfolios</h3>
+
+    <form method="post" action="/add_portfolio">
+        <input name="name" class="form-control mb-2" placeholder="Portfolio name" required>
+        <button class="btn btn-success">Add Portfolio</button>
+    </form>
+
+    <ul>
+    {% for p in portfolios %}
+<li class="mb-2">
+
+    <strong>{{ p[1] }}</strong>
+
+    <!-- DELETE -->
+    <a href="/delete_portfolio/{{ p[0] }}"
+       onclick="return confirm('Delete this portfolio?')"
+       class="btn btn-sm btn-danger ms-2">
+       Delete
+    </a>
+
+    <!-- RESET PORTFOLIO VOTES -->
+    <a href="/reset_portfolio/{{ p[0] }}"
+       onclick="return confirm('Reset this portfolio votes?')"
+       class="btn btn-sm btn-warning ms-1">
+       Reset Votes
+    </a>
+
+</li>
+    {% endfor %}
+    </ul>
+</div>
+
+<!-- CANDIDATES -->
+<div id="candidates" class="section" style="display:none;">
+    <h3>Candidates</h3>
+
+<a href="/download_candidates"
+   class="btn btn-success mb-3">
+   📥 Download Candidates List
+</a>
+
+    <!-- Add Candidate -->
+    <form method="post" action="/add_candidate" enctype="multipart/form-data">
+        <input name="name" class="form-control mb-2" placeholder="Candidate name" required>
+
+        <select name="portfolio" class="form-control mb-2">
+            {% for p in portfolios %}
+            <option value="{{ p[0] }}">{{ p[1] }}</option>
+            {% endfor %}
+        </select>
+
+        <input type="file" name="image" class="form-control mb-2">
+        <button class="btn btn-primary">Add Candidate</button>
+    </form>
+
+    <!-- Candidate List grouped by portfolio -->
+    {% for p in portfolios %}
+        <h5 class="mt-3">{{ p[1] }}</h5>
+
+        <div style="display:flex; flex-wrap:wrap; gap:10px;">
+        {% for c in candidates %}
+            {% if c[2] == p[0] %}
+            <div style="border:1px solid #ccc; padding:10px; width:120px; text-align:center;">
+                {% if c[3] %}
+                <img src="/static/uploads/{{ c[3] }}" width="80"><br>
+                {% endif %}
+                {{ c[1] }}
+                <br>
+<a href="/delete_candidate/{{ c[0] }}"
+   onclick="return confirm('Delete this candidate?')"
+   class="btn btn-sm btn-danger">
+   Delete
+</a>
+
+
+            </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+    {% endfor %}
+</div>
+
+</div>
+</div>
+
+<a href="/reset"
+   onclick="return confirm('Reset ALL election votes?')"
+   class="btn btn-warning">
+   🔄 Reset Entire Election
+</a>
+
+<a href="/voter_register"
+   class="btn btn-dark mb-2">
+   🖨 Print Voter Register
+</a>
+
+
+<!-- SCRIPT -->
+<script>
+
+function showSection(section){
+
+    // hide all sections
+    let sections = document.querySelectorAll('.section');
+
+    sections.forEach(function(div){
+        div.style.display = 'none';
+    });
+
+    // show selected section
+    document.getElementById(section).style.display = 'block';
+}
+
+// =========================
+// TOGGLE STUDENTS
+// =========================
+function toggleStudents(){
+
+    let list = document.getElementById("studentList");
+
+    if(list.style.display === "none"){
+
+        list.style.display = "block";
+
+    } else {
+
+        list.style.display = "none";
+    }
+}
+
+// =========================
+// SELECT ALL STUDENTS
+// =========================
+function toggleSelectAll(){
+
+    let checkboxes =
+        document.querySelectorAll(
+            'input[name="student_ids"]'
+        );
+
+    let allChecked =
+        Array.from(checkboxes)
+        .every(cb => cb.checked);
+
+    checkboxes.forEach(function(cb){
+
+        cb.checked = !allChecked;
+
+    });
+}
+
+// =========================
+// SEARCH STUDENT
+// =========================
+function findStudent(){
+
+    let input =
+        document.getElementById(
+            "studentSearch"
+        );
+
+    let filter =
+        input.value.toLowerCase();
+
+    let list =
+        document.getElementById(
+            "studentList"
+        );
+
+    let items =
+        list.getElementsByTagName("li");
+
+    for(let i = 0; i < items.length; i++){
+
+        let text =
+            items[i].innerText.toLowerCase();
+
+        if(text.includes(filter)){
+
+            items[i].style.display = "";
+
+        } else {
+
+            items[i].style.display = "none";
+        }
+    }
+}
+
+// =========================
+// DEFAULT SECTION
+// =========================
+window.onload = function(){
+
+    showSection('dashboard');
+
+};
+
+</script>
+
+{% endblock %}

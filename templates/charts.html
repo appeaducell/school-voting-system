@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h2 class="text-center mb-4">
+    📊 Election Charts Dashboard
+</h2>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% for portfolio, data in portfolios.items() %}
+
+<div class="card p-4 mb-5 shadow-sm">
+
+    <h3 class="text-primary mb-4">
+        {{ portfolio }}
+    </h3>
+
+    <!-- BAR CHART -->
+    <canvas id="bar{{ loop.index }}"
+            style="max-height:400px;">
+    </canvas>
+
+    <br><br>
+
+    <!-- PIE CHART -->
+    <canvas id="pie{{ loop.index }}"
+            style="max-height:400px;">
+    </canvas>
+
+</div>
+
+<script>
+
+const barCtx{{ loop.index }} =
+    document.getElementById(
+        'bar{{ loop.index }}'
+    );
+
+new Chart(barCtx{{ loop.index }}, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: {{ data["labels"] | tojson }},
+
+        datasets: [{
+
+            label: 'Votes',
+
+            data: {{ data["votes"] | tojson }},
+
+            borderWidth: 1
+
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+
+        scales: {
+
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+const pieCtx{{ loop.index }} =
+    document.getElementById(
+        'pie{{ loop.index }}'
+    );
+
+new Chart(pieCtx{{ loop.index }}, {
+
+    type: 'pie',
+
+    data: {
+
+        labels: {{ data["labels"] | tojson }},
+
+        datasets: [{
+
+            data: {{ data["votes"] | tojson }}
+
+        }]
+    },
+
+    options: {
+
+        responsive: true
+
+    }
+});
+
+</script>
+
+{% endfor %}
+
+{% endblock %}

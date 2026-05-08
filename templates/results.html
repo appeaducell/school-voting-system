@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2 class="text-center mb-1">🏆 Official Election Results</h2>
+
+<!-- PRINT BUTTON -->
+<div class="text-end mb-1">
+    <button onclick="printResults()" class="btn btn-dark">
+        🖨️ Print / Save PDF
+    </button>
+</div>
+
+{% for portfolio, candidates in portfolios.items() %}
+<h3 class="mt-5 mb-4 text-primary border-bottom pb-2">
+    {{ portfolio }}
+</h3>
+    <!-- CANDIDATES -->
+    <div class="row">
+
+    {% for c in candidates %}
+    <div class="col-md-4 text-center mb-2">
+
+<div class="card p-3 shadow-sm">
+            <!-- IMAGE -->
+            <div style="
+                width:100px;
+                height:150px;
+                margin:auto;
+                overflow:hidden;
+                border-radius:5px;
+                border:1px solid #ccc;
+                background:#f8f9fa;
+            ">
+
+                {% if c.image %}
+                <img src="{{ url_for('static', filename='uploads/' + c.image) }}"
+                     style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                     ">
+                {% endif %}
+
+            </div>
+
+            <div class="mt-2">
+
+                <strong>{{ c.name }}</strong><br>
+
+                <div class="mt-1">
+                    Votes: <strong>{{ c.votes }}</strong>
+                </div>
+
+                <div>
+                    {{ c.percent }}%
+                </div>
+
+                <!-- PROGRESS BAR -->
+                <div class="progress mt-2">
+                    <div class="progress-bar"
+                         style="width:{{ c.percent }}%">
+                        {{ c.percent }}%
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+    {% endfor %}
+
+    </div>
+
+
+{% endfor %}
+
+<!-- PRINT -->
+<script>
+function printResults() {
+    window.print();
+}
+</script>
+
+{% endblock %}

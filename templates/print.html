@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Print Results</title>
+<style>
+body { font-family: Arial; }
+h2 { text-align: center; }
+</style>
+</head>
+
+<body onload="window.print()">
+
+<h2>Election Results</h2>
+
+{% for p, c, v in rows %}
+<p>{{ p }} - {{ c }} : {{ v }} votes</p>
+{% endfor %}
+
+</body>
+</html>

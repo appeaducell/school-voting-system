@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="text-center">
+
+    <h3 class="text-danger mb-4">
+        ⚠ Confirm Election Reset
+    </h3>
+
+    <p>
+        This will:
+    </p>
+
+    <ul style="display:inline-block; text-align:left;">
+        <li>Delete ALL current votes</li>
+        <li>Allow all students to vote again</li>
+        <li>Archive previous votes</li>
+    </ul>
+
+    <form method="post" class="mt-4">
+
+        <input type="password"
+               name="password"
+               placeholder="Enter Admin Password"
+               class="form-control mb-3"
+               required>
+
+        <button class="btn btn-danger">
+            🔄 Confirm Reset
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h3 class="mb-3">Student Login</h3>
+
+<form method="post" action="/student">
+    <input class="form-control mb-2" name="student_id" placeholder="Enter Student ID" required>
+    <button class="btn btn-primary btn-main">Vote</button>
+</form>
+
+<hr>
+
+<h3 class="mt-4">Admin Login</h3>
+
+<form method="post" action="/admin">
+
+    <input name="username"
+           class="form-control mb-2"
+           placeholder="Admin Username"
+           required>
+
+    <input type="password"
+           name="password"
+           class="form-control mb-2"
+           placeholder="Admin Password"
+           required>
+
+    <button class="btn btn-dark btn-main">Login</button>
+
+</form>
+
+{% endblock %}

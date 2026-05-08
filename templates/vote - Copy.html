@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h3 class="mb-4 text-center">
+    🗳 Cast Your Vote
+</h3>
+
+<form method="post" id="voteForm">
+
+{% for portfolio, pdata in data.items() %}
+
+<div class="portfolio-section card p-4 mb-4"
+     id="portfolio{{ pdata.id }}"
+     {% if not loop.first %}style="display:none;"{% endif %}>
+
+    <h4 class="text-primary mb-4 text-center">
+        {{ portfolio }}
+    </h4>
+
+    <div class="row justify-content-center">
+
+    {% for c in pdata.candidates %}
+
+    <div class="col-md-3 text-center mb-3">
+
+        <label style="cursor:pointer; width:100%;">
+
+            <input type="radio"
+                   name="{{ pdata.id }}"
+                   value="{{ c[0] }}"
+                   required
+                   style="display:none;"
+                   onchange="nextPortfolio('{{ pdata.id }}')">
+
+            <div class="candidate-card p-3 border rounded shadow-sm">
+
+                <div style="
+                    width:140px;
+                    height:140px;
+                    margin:auto;
+                    overflow:hidden;
+                    border-radius:12px;
+                    border:1px solid #ccc;
+                    background:#f8f9fa;
+                ">
+
+                    {% if c[3] %}
+                    <img src="{{ url_for('static', filename='uploads/' + c[3]) }}"
+                         style="
+                            width:100%;
+                            height:100%;
+                            object-fit:cover;
+                         ">
+                    {% endif %}
+
+                </div>
+
+                <div class="mt-3">
+                    <strong>{{ c[1] }}</strong>
+                </div>
+
+            </div>
+
+        </label>
+
+    </div>
+
+    {% endfor %}
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+<div id="submitSection"
+     class="text-center"
+     style="display:none;">
+
+    <button class="btn btn-success btn-lg">
+        ✅ Submit Final Votes
+    </button>
+
+</div>
+
+</form>
+
+<style>
+input[type="radio"]:checked + .candidate-card{
+    border:3px solid #198754 !important;
+    background:#d1e7dd;
+    transform:scale(1.02);
+    transition:0.2s;
+}
+</style>
+
+<script>
+
+let portfolios = document.querySelectorAll('.portfolio-section');
+
+function nextPortfolio(currentId){
+
+    let current = document.getElementById(
+        "portfolio" + currentId
+    );
+
+    current.style.display = "none";
+
+    let portfolioArray = Array.from(portfolios);
+
+    let currentIndex = portfolioArray.indexOf(current);
+
+    if(currentIndex + 1 < portfolioArray.length){
+
+        let next = portfolioArray[currentIndex + 1];
+
+        next.style.display = "block";
+
+        next.scrollIntoView({
+            behavior:"smooth"
+        });
+
+    } else {
+
+        document.getElementById(
+            "submitSection"
+        ).style.display = "block";
+
+    }
+}
+
+</script>
+
+{% endblock %}
