@@ -13,20 +13,24 @@
 
 <h3 class="mt-4">Admin Login</h3>
 
-<form method="post" action="/admin">
 
-    <input name="username"
-           class="form-control mb-2"
+<form method="POST" action="/admin_login">
+
+    <input type="text"
+           name="username"
+           class="form-control mb-3"
            placeholder="Admin Username"
            required>
 
     <input type="password"
            name="password"
-           class="form-control mb-2"
-           placeholder="Admin Password"
+           class="form-control mb-3"
+           placeholder="Password"
            required>
 
-    <button class="btn btn-dark btn-main">Login</button>
+    <button class="btn btn-dark w-100">
+        Admin Login
+    </button>
 
 </form>
 

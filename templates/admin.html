@@ -1,263 +1,608 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div style="display:flex; min-height:500px;">
+<div class="container-fluid">
+<div class="row">
 
-<!-- SIDEBAR -->
-<div style="width:220px; background:#0d6efd; color:white; padding:15px;">
-    <h4>Admin Panel</h4>
+    <!-- SIDEBAR -->
+    <div class="col-md-2 bg-primary text-white min-vh-100 p-3">
 
-    <button onclick="showSection('dashboard')" class="btn btn-light w-100 mb-2">Dashboard</button>
-    <button onclick="showSection('students')" class="btn btn-light w-100 mb-2">Students</button>
-    <button onclick="showSection('portfolios')" class="btn btn-light w-100 mb-2">Portfolios</button>
-    <button onclick="showSection('candidates')" class="btn btn-light w-100 mb-2">Candidates</button>
-    
-    <a href="/results" class="btn btn-warning w-100 mt-3">Results</a>
-    <a href="/export_results" class="btn btn-success w-100 mt-2"> 📥 Export Results Excel</a>
-    <a href="/charts" class="btn btn-info w-100 mt-2"> 📊 Results Charts </a>     <a href="/settings" class="btn btn-secondary w-100 mt-2">Settings</a>
-    <a href="/logout" class="btn btn-danger w-100 mt-2">Logout</a>
+        <h3 class="mb-4">Admin Panel</h3>
 
-
-</div>
-
-<!-- MAIN CONTENT -->
-<div style="flex:1; padding:20px;">
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="section">
-    <h3>Dashboard</h3>
-    <p>Total Students: {{ students|length }}</p>
-    <p>Total Candidates: {{ candidates|length }}</p>
-    <p>Total Portfolios: {{ portfolios|length }}</p>
-<div class="row mb-4">
-
-    <div class="col-md-4">
-        <div class="card p-3 text-center shadow-sm">
-            <h5>Total Students</h5>
-            <h2>{{ total_students }}</h2>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card p-3 text-center shadow-sm">
-            <h5>Students Voted</h5>
-            <h2>{{ voted_students }}</h2>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card p-3 text-center shadow-sm">
-            <h5>Not Yet Voted</h5>
-            <h2>{{ not_voted }}</h2>
-        </div>
-    </div>
-
-</div>
-
-</div>
-
-<!-- STUDENTS MODULE -->
-<div id="students" class="section" style="display:none;">
-    <h3>Students</h3>
-
-    <!-- Upload Excel -->
-    <form method="post" action="/upload_students" enctype="multipart/form-data">
-        <input type="file" name="file" class="form-control mb-2" required>
-        <button class="btn btn-primary">Upload Excel</button>
-    </form>
-
-    <br>
-
-    <!-- BULK DELETE FORM -->
-    <form method="post" action="/delete_students">
-
-        <button type="submit"
-                onclick="return confirm('Delete selected students?')"
-                class="btn btn-danger mb-2">
-            Delete Selected
+        <button onclick="showSection('dashboard')"
+                class="btn btn-light w-100 mb-2">
+            Dashboard
+      
         </button>
 
-        <button type="button"
-                onclick="toggleSelectAll()"
-                class="btn btn-secondary mb-2">
-            Select All
+
+
+<button onclick="showSection('students')"
+        class="btn btn-light w-100 mb-2">
+    Students
+</button>
+
+        <button onclick="showSection('portfolios')"
+                class="btn btn-light w-100 mb-2">
+            Portfolios
         </button>
 
-        <!-- Toggle visibility -->
-        <button type="button"
-                onclick="toggleStudents()"
-                class="btn btn-info mb-2">
-            Show / Hide Students
+
+
+<button onclick="showSection('candidates')"
+        class="btn btn-light w-100 mb-2">
+    Candidates
+</button>
+
+
+        <button onclick="showSection('users')"
+                class="btn btn-dark w-100 mb-2">
+            👤 Admin Users
         </button>
 
-<input type="text"
-       id="studentSearch"
-       onkeyup="findStudent()"
-       placeholder="Search student by ID or name..."
-       class="form-control mb-3">
 
-        <!-- Student List -->
-<ul id="studentList"
-    style="display:none; list-style:none; padding-left:0;">
-        {% for s in students %}
-<li class="mb-1">
 
-    <input type="checkbox"
-           name="student_ids"
-           value="{{ s[0] }}">
-
-    {{ s[1] }} ({{ s[0] }})
-
-    <!-- DELETE -->
-    <a href="/delete_student/{{ s[0] }}"
-       onclick="return confirm('Delete this student?')"
-       class="btn btn-sm btn-outline-danger ms-2">
-       Delete
-    </a>
-
-    <!-- RESET VOTE -->
-    <a href="/reset_student/{{ s[0] }}"
-       onclick="return confirm('Reset this student voting?')"
-       class="btn btn-sm btn-info ms-1">
-       Reset Vote
-    </a>
-
-</li>
-        {% endfor %}
-        </ul>
-
-    </form>
-
-<a href="/download_students"
-   class="btn btn-success mb-2">
-   📥 Download Student List
+<a href="/results"
+   class="btn btn-warning w-100 mb-2">
+   Results
 </a>
 
-</div>
 
-<!-- PORTFOLIOS -->
-<div id="portfolios" class="section" style="display:none;">
-    <h3>Portfolios</h3>
+        <a href="/export_results"
+           class="btn btn-success w-100 mb-2">
+           📥 Export Results Excel
+        </a>
 
-    <form method="post" action="/add_portfolio">
-        <input name="name" class="form-control mb-2" placeholder="Portfolio name" required>
-        <button class="btn btn-success">Add Portfolio</button>
-    </form>
-
-    <ul>
-    {% for p in portfolios %}
-<li class="mb-2">
-
-    <strong>{{ p[1] }}</strong>
-
-    <!-- DELETE -->
-    <a href="/delete_portfolio/{{ p[0] }}"
-       onclick="return confirm('Delete this portfolio?')"
-       class="btn btn-sm btn-danger ms-2">
-       Delete
-    </a>
-
-    <!-- RESET PORTFOLIO VOTES -->
-    <a href="/reset_portfolio/{{ p[0] }}"
-       onclick="return confirm('Reset this portfolio votes?')"
-       class="btn btn-sm btn-warning ms-1">
-       Reset Votes
-    </a>
-
-</li>
-    {% endfor %}
-    </ul>
-</div>
-
-<!-- CANDIDATES -->
-<div id="candidates" class="section" style="display:none;">
-    <h3>Candidates</h3>
-
-<a href="/download_candidates"
-   class="btn btn-success mb-3">
-   📥 Download Candidates List
+        <a href="/charts"
+           class="btn btn-info w-100 mb-2">
+           📊 Results Charts
+        </a>
+<a href="/settings"
+   class="btn btn-secondary w-100 mb-2">
+   Settings
 </a>
 
-    <!-- Add Candidate -->
-    <form method="post" action="/add_candidate" enctype="multipart/form-data">
-        <input name="name" class="form-control mb-2" placeholder="Candidate name" required>
 
-        <select name="portfolio" class="form-control mb-2">
-            {% for p in portfolios %}
-            <option value="{{ p[0] }}">{{ p[1] }}</option>
-            {% endfor %}
-        </select>
+        <a href="/reset"
+           onclick="return confirm('Reset ALL election votes?')"
+           class="btn btn-warning w-100 mb-2">
+           🔄 Reset Entire Election
+        </a>
 
-        <input type="file" name="image" class="form-control mb-2">
-        <button class="btn btn-primary">Add Candidate</button>
-    </form>
 
-    <!-- Candidate List grouped by portfolio -->
-    {% for p in portfolios %}
-        <h5 class="mt-3">{{ p[1] }}</h5>
+        <a href="/voter_register"
+           class="btn btn-dark w-100 mb-2">
+           🖨 Print Voter Register
+        </a>
 
-        <div style="display:flex; flex-wrap:wrap; gap:10px;">
-        {% for c in candidates %}
-            {% if c[2] == p[0] %}
-            <div style="border:1px solid #ccc; padding:10px; width:120px; text-align:center;">
-                {% if c[3] %}
-                <img src="/static/uploads/{{ c[3] }}" width="80"><br>
-                {% endif %}
-                {{ c[1] }}
-                <br>
-<a href="/delete_candidate/{{ c[0] }}"
-   onclick="return confirm('Delete this candidate?')"
-   class="btn btn-sm btn-danger">
-   Delete
-</a>
+        <a href="/logout"
+           class="btn btn-danger w-100 mt-3">
+           Logout
+        </a>
 
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="col-md-10 p-4">
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="section">
+
+            <h2 class="mb-4">Dashboard</h2>
+
+            <div class="row mb-4">
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm p-4 text-center">
+                        <h5>Total Students</h5>
+                        <h2>{{ total_students }}</h2>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm p-4 text-center">
+                        <h5>Students Voted</h5>
+                        <h2>{{ voted_students }}</h2>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm p-4 text-center">
+                        <h5>Not Yet Voted</h5>
+                        <h2>{{ not_voted }}</h2>
+                    </div>
+                </div>
 
             </div>
-            {% endif %}
-        {% endfor %}
+
+
+            <!-- RESET PASSWORD -->
+
+            <div class="card p-4 shadow-sm">
+
+
+                <h4 class="mb-3">
+                    🔐 Reset Admin Password
+                </h4>
+
+
+
+                <form method="POST"
+                      action="/reset_admin_password">
+
+                    <input type="text"
+                           name="username"
+                           class="form-control mb-3"
+                           placeholder="Admin Username"
+                           required>
+
+                    <input type="password"
+                           name="new_password"
+                           class="form-control mb-3"
+                           placeholder="New Password"
+                           required>
+
+                    <button class="btn btn-warning">
+                        Reset Password
+                    </button>
+
+                </form>
+
+            </div>
+
         </div>
-    {% endfor %}
-</div>
+
+        <!-- ADMIN USERS -->
+        <div id="users"
+             class="section"
+             style="display:none;">
+
+            <h2 class="mb-4">
+                👤 Admin Users
+            </h2>
+
+            <div class="card p-4 shadow-sm">
+
+                <form method="POST"
+                      action="/create_admin">
+
+                    <input type="text"
+                           name="username"
+                           class="form-control mb-3"
+                           placeholder="Username"
+                           required>
+
+                    <input type="password"
+                           name="password"
+                           class="form-control mb-3"
+                           placeholder="Password"
+                           required>
+
+                    <h5 class="mb-3">
+                        Assign Functions
+                    </h5>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="students">
+
+                        <label class="form-check-label">
+                            Manage Students
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="candidates">
+
+                        <label class="form-check-label">
+                            Manage Candidates
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="results">
+
+                        <label class="form-check-label">
+                            Manage Results
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="settings">
+
+                        <label class="form-check-label">
+                            Manage Settings
+                        </label>
+                    </div>
+
+                    <button class="btn btn-primary">
+                        Create Admin
+                    </button>
+
+                </form>
+
+<div class="card p-4 shadow-sm mt-4">
+
+    <h4 class="mb-3">
+        👥 Admin Users
+    </h4>
+
+    <table class="table table-bordered">
+
+        <thead class="table-dark">
+            <tr>
+                <th>Username</th>
+                <th>Students</th>
+                <th>Candidates</th>
+                <th>Results</th>
+                <th>Settings</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for admin in admins %}
+
+            <tr>
+
+                <td>{{ admin[1] }}</td>
+
+                <td>
+                    {% if admin[3] == 1 %}
+                        ✅
+                    {% else %}
+                        ❌
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if admin[4] == 1 %}
+                        ✅
+                    {% else %}
+                        ❌
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if admin[5] == 1 %}
+                        ✅
+                    {% else %}
+                        ❌
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if admin[6] == 1 %}
+                        ✅
+                    {% else %}
+                        ❌
+                    {% endif %}
+                </td>
+
+                <td>
+
+                    {% if admin[1] != "admin" %}
+                    <a href="/delete_admin/{{ admin[0] }}"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('Delete this admin user?')">
+                       Delete
+                    </a>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
 
 </div>
+
+            </div>
+
+        </div>
+
+        <!-- STUDENTS -->
+        <!-- STUDENTS -->
+<div id="students"
+     class="section"
+     style="display:none;">
+
+    <h2 class="mb-4">Students</h2>
+
+    <!-- UPLOAD -->
+    <div class="card p-4 shadow-sm mb-4">
+
+        <form method="POST"
+              action="/upload_students"
+              enctype="multipart/form-data">
+
+            <input type="file"
+                   name="file"
+                   class="form-control mb-3"
+                   required>
+
+            <button class="btn btn-primary">
+                Upload Excel
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- STUDENTS LIST -->
+    <div class="card p-4 shadow-sm">
+
+        <form method="POST"
+              action="/delete_students">
+
+            <button type="submit"
+                    onclick="return confirm('Delete selected students?')"
+                    class="btn btn-danger mb-2">
+                Delete Selected
+            </button>
+
+            <button type="button"
+                    onclick="toggleSelectAll()"
+                    class="btn btn-secondary mb-2">
+                Select All
+            </button>
+
+            <button type="button"
+                    onclick="toggleStudents()"
+                    class="btn btn-info mb-2">
+                Show / Hide Students
+            </button>
+
+            <input type="text"
+                   id="studentSearch"
+                   onkeyup="findStudent()"
+                   placeholder="Search student..."
+                   class="form-control mb-3">
+
+            <ul id="studentList"
+                style="display:none; list-style:none; padding-left:0; max-height:500px; overflow-y:auto;">
+
+                {% for s in students %}
+
+                <li class="mb-2 border-bottom pb-2">
+
+                    <input type="checkbox"
+                           class="student-check"
+                           name="student_ids"
+                           value="{{ s[0] }}">
+
+                    <strong>{{ s[1] }}</strong>
+                    ({{ s[0] }})
+
+                    {% if s[2] == 1 %}
+                        <span class="badge bg-success">
+                            Voted
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            Not Voted
+                        </span>
+                    {% endif %}
+
+                    <div class="mt-2">
+
+                        <a href="/delete_student/{{ s[0] }}"
+                           class="btn btn-sm btn-danger">
+                           Delete
+                        </a>
+
+                        <a href="/reset_student/{{ s[0] }}"
+                           class="btn btn-sm btn-warning">
+                           Reset Vote
+                        </a>
+
+                    </div>
+
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+        </form>
+
+        <a href="/download_students"
+           class="btn btn-success mt-3">
+           📥 Download Student List
+        </a>
+
+    </div>
+
 </div>
 
-<a href="/reset"
-   onclick="return confirm('Reset ALL election votes?')"
-   class="btn btn-warning">
-   🔄 Reset Entire Election
-</a>
 
-<a href="/voter_register"
-   class="btn btn-dark mb-2">
-   🖨 Print Voter Register
-</a>
+        <!-- PORTFOLIOS -->
+        <div id="portfolios"
+             class="section"
+             style="display:none;">
 
+            <h2 class="mb-4">Portfolios</h2>
 
-<!-- SCRIPT -->
+            <div class="card p-4 shadow-sm mb-4">
+
+                <form method="POST"
+                      action="/add_portfolio">
+
+                    <input name="name"
+                           class="form-control mb-3"
+                           placeholder="Portfolio Name"
+                           required>
+
+                    <button class="btn btn-success">
+                        Add Portfolio
+                    </button>
+
+                </form>
+
+            </div>
+
+            <div class="card p-4 shadow-sm">
+
+                <ul style="list-style:none; padding-left:0;">
+
+                    {% for p in portfolios %}
+
+                    <li class="mb-3">
+
+                        <strong>{{ p[1] }}</strong>
+
+                        <a href="/delete_portfolio/{{ p[0] }}"
+                           class="btn btn-sm btn-danger ms-2">
+                           Delete
+                        </a>
+
+                        <a href="/reset_portfolio/{{ p[0] }}"
+                           class="btn btn-sm btn-warning ms-1">
+                           Reset Votes
+                        </a>
+
+                    </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+        </div>
+
+        <!-- CANDIDATES -->
+        <div id="candidates"
+             class="section"
+             style="display:none;">
+
+            <h2 class="mb-4">Candidates</h2>
+
+            <div class="card p-4 shadow-sm mb-4">
+
+                <form method="POST"
+                      action="/add_candidate"
+                      enctype="multipart/form-data">
+
+                    <input name="name"
+                           class="form-control mb-3"
+                           placeholder="Candidate Name"
+                           required>
+
+                    <select name="portfolio"
+                            class="form-control mb-3"
+                            required>
+
+                        {% for p in portfolios %}
+                        <option value="{{ p[0] }}">
+                            {{ p[1] }}
+                        </option>
+                        {% endfor %}
+
+                    </select>
+
+                    <input type="file"
+                           name="image"
+                           class="form-control mb-3">
+
+                    <button class="btn btn-primary">
+                        Add Candidate
+                    </button>
+
+                </form>
+
+            </div>
+
+            <!-- CANDIDATE LIST -->
+            <div class="row">
+
+                {% for c in candidates %}
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card shadow-sm h-100">
+
+                        {% if c[3] %}
+                        <img src="{{ url_for('static', filename='uploads/' + c[3]) }}"
+                             class="card-img-top"
+                             style="height:250px; object-fit:cover;">
+                        {% endif %}
+
+                        <div class="card-body text-center">
+
+                            <h5>{{ c[1] }}</h5>
+
+                            <p>{{ c[2] }}</p>
+
+                            <a href="/delete_candidate/{{ c[0] }}"
+                               class="btn btn-danger btn-sm">
+                               Delete
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            <a href="/download_candidates"
+               class="btn btn-success mt-3">
+               📥 Download Candidates List
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+
 <script>
 
-function showSection(section){
+function showSection(sectionId){
 
-    // hide all sections
-    let sections = document.querySelectorAll('.section');
+    let sections = document.querySelectorAll(".section");
 
-    sections.forEach(function(div){
-        div.style.display = 'none';
+    sections.forEach(function(section){
+        section.style.display = "none";
     });
 
-    // show selected section
-    document.getElementById(section).style.display = 'block';
+    let activeSection = document.getElementById(sectionId);
+
+    if(activeSection){
+        activeSection.style.display = "block";
+    }
 }
 
-// =========================
-// TOGGLE STUDENTS
-// =========================
+window.onload = function(){
+    showSection("dashboard");
+}
+
 function toggleStudents(){
 
     let list = document.getElementById("studentList");
 
-    if(list.style.display === "none"){
+    if(
+        list.style.display === "none" ||
+        list.style.display === ""
+    ){
 
         list.style.display = "block";
 
@@ -267,72 +612,48 @@ function toggleStudents(){
     }
 }
 
-// =========================
-// SELECT ALL STUDENTS
-// =========================
 function toggleSelectAll(){
 
-    let checkboxes =
-        document.querySelectorAll(
-            'input[name="student_ids"]'
-        );
+    let checkboxes = document.querySelectorAll(".student-check");
 
-    let allChecked =
-        Array.from(checkboxes)
-        .every(cb => cb.checked);
+    let allChecked = true;
 
-    checkboxes.forEach(function(cb){
+    checkboxes.forEach(function(box){
 
-        cb.checked = !allChecked;
+        if(!box.checked){
+            allChecked = false;
+        }
+
+    });
+
+    checkboxes.forEach(function(box){
+
+        box.checked = !allChecked;
 
     });
 }
 
-// =========================
-// SEARCH STUDENT
-// =========================
+
+
 function findStudent(){
 
-    let input =
-        document.getElementById(
-            "studentSearch"
-        );
+    let input = document.getElementById("studentSearch");
+    let filter = input.value.toLowerCase();
 
-    let filter =
-        input.value.toLowerCase();
+    let ul = document.getElementById("studentList");
+    let li = ul.getElementsByTagName("li");
 
-    let list =
-        document.getElementById(
-            "studentList"
-        );
+    for(let i = 0; i < li.length; i++){
 
-    let items =
-        list.getElementsByTagName("li");
+        let txtValue = li[i].textContent || li[i].innerText;
 
-    for(let i = 0; i < items.length; i++){
-
-        let text =
-            items[i].innerText.toLowerCase();
-
-        if(text.includes(filter)){
-
-            items[i].style.display = "";
-
+        if(txtValue.toLowerCase().indexOf(filter) > -1){
+            li[i].style.display = "";
         } else {
-
-            items[i].style.display = "none";
+            li[i].style.display = "none";
         }
     }
 }
-
-// =========================
-// DEFAULT SECTION
-// =========================
-window.onload = function(){
-
-    showSection('dashboard');
-
-};
 
 </script>
 

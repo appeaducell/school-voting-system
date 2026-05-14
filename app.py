@@ -12,6 +12,12 @@ import sqlite3
 import os
 import pandas as pd
 
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash
+)
+
+
 from datetime import datetime
 
 app = Flask(__name__)
@@ -24,13 +30,16 @@ def db():
 
     return sqlite3.connect("database.db")
 
+
+
+
 def init():
 
     conn = db()
-    c = conn.cursor()
+    cur = conn.cursor()
 
-    # STUDENTS
-    c.execute("""
+    # ================= STUDENTS =================
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS students(
         student_id TEXT PRIMARY KEY,
         name TEXT,
@@ -38,16 +47,16 @@ def init():
     )
     """)
 
-    # PORTFOLIOS
-    c.execute("""
+    # ================= PORTFOLIOS =================
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS portfolios(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT
     )
     """)
 
-    # CANDIDATES
-    c.execute("""
+    # ================= CANDIDATES =================
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS candidates(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -56,8 +65,8 @@ def init():
     )
     """)
 
-    # VOTES
-    c.execute("""
+    # ================= VOTES =================
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS votes(
         student_id TEXT,
         candidate_id INTEGER,
@@ -65,8 +74,8 @@ def init():
     )
     """)
 
-    # SETTINGS
-    c.execute("""
+    # ================= SETTINGS =================
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS settings(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         school_name TEXT,
@@ -77,8 +86,8 @@ def init():
     )
     """)
 
-    # ARCHIVED VOTES
-    c.execute("""
+    # ================= ARCHIVED VOTES =================
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS archived_votes(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_id TEXT,
@@ -88,8 +97,8 @@ def init():
     )
     """)
 
-    # RESET LOGS
-    c.execute("""
+    # ================= RESET LOGS =================
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS reset_logs(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         admin TEXT,
@@ -98,9 +107,54 @@ def init():
     )
     """)
 
+    # ================= ADMINS =================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS admins(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT,
+        can_manage_students INTEGER DEFAULT 0,
+        can_manage_candidates INTEGER DEFAULT 0,
+        can_manage_results INTEGER DEFAULT 0,
+        can_manage_settings INTEGER DEFAULT 0
+    )
+    """)
+
+    # ================= DEFAULT ADMIN =================
+    admin_exists = cur.execute(
+        "SELECT * FROM admins WHERE username=?",
+        ("admin",)
+    ).fetchone()
+
+    if not admin_exists:
+
+        hashed = generate_password_hash("admin123")
+
+        cur.execute("""
+            INSERT INTO admins(
+                username,
+                password,
+                can_manage_students,
+                can_manage_candidates,
+                can_manage_results,
+                can_manage_settings
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            "admin",
+            hashed,
+            1,
+            1,
+            1,
+            1
+        ))
+
     conn.commit()
     conn.close()
+
 init()
+
+
 
 
 @app.context_processor
@@ -136,18 +190,20 @@ def inject_settings():
         end_time=""
     )
 
-
 # ================= LOGIN =================
 @app.route("/")
 def home():
     return render_template("login.html")
 
-@app.route("/admin", methods=["POST"])
+@app.route("/admin")
 def admin():
-    if request.form["password"] == "admin123":
-        session["admin"] = True
-        return redirect("/dashboard")
-    return "Wrong password"
+
+    if "admin" not in session:
+        return redirect("/")
+
+    return redirect("/dashboard")
+
+
 
 @app.route("/logout")
 def logout():
@@ -162,22 +218,31 @@ def dashboard():
         return redirect("/")
 
     conn = db()
+    cur = conn.cursor()
 
-    portfolios = conn.execute("""
-        SELECT * FROM portfolios
+    portfolios = cur.execute("""
+        SELECT *
+        FROM portfolios
     """).fetchall()
 
-    candidates = conn.execute("""
-        SELECT * FROM candidates
+    candidates = cur.execute("""
+        SELECT *
+        FROM candidates
     """).fetchall()
 
-    students = conn.execute("""
-        SELECT * FROM students
+    students = cur.execute("""
+        SELECT *
+        FROM students
+    """).fetchall()
+
+    admins = cur.execute("""
+        SELECT *
+        FROM admins
     """).fetchall()
 
     total_students = len(students)
 
-    voted_students = conn.execute("""
+    voted_students = cur.execute("""
         SELECT COUNT(*)
         FROM students
         WHERE has_voted=1
@@ -192,10 +257,13 @@ def dashboard():
         portfolios=portfolios,
         candidates=candidates,
         students=students,
+        admins=admins,
         total_students=total_students,
         voted_students=voted_students,
         not_voted=not_voted
     )
+
+
 # ================= PORTFOLIO =================
 @app.route("/add_portfolio", methods=["POST"])
 def add_portfolio():
@@ -216,6 +284,7 @@ def add_portfolio():
     flash("Portfolio added successfully")
 
     return redirect("/dashboard")
+
 
 @app.route("/delete_portfolio/<pid>")
 def delete_portfolio(pid):
@@ -495,6 +564,33 @@ def vote():
         "vote.html",
         data=data
     )
+
+@app.route("/delete_admin/<aid>")
+def delete_admin(aid):
+
+    if "admin" not in session:
+        return redirect("/")
+
+    # only main admin can delete
+    if session["admin"] != "admin":
+        return "Access Denied"
+
+    conn = db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        DELETE FROM admins
+        WHERE id=?
+    """, (aid,))
+
+    conn.commit()
+    conn.close()
+
+    flash("Admin deleted successfully")
+
+    return redirect("/dashboard")
+
+
 
 # ================= RESULTS =================
 @app.route("/results")
@@ -856,30 +952,43 @@ def reset():
     if "admin" not in session:
         return redirect("/")
 
-    # SHOW CONFIRM PAGE
+    # show confirmation page
     if request.method == "GET":
         return render_template("reset_confirm.html")
 
     password = request.form.get("password")
 
-    # verify admin password
-    if password != "admin123":
-        from flask import flash
-        flash("Incorrect admin password")
-        return redirect("/reset")
-
     conn = db()
     cur = conn.cursor()
+
+    # verify current admin password
+    admin_username = session.get("admin")
+
+    admin = cur.execute("""
+        SELECT password
+        FROM admins
+        WHERE username=?
+    """, (admin_username,)).fetchone()
+
+    if not admin or not check_password_hash(admin[0], password):
+
+        flash("Incorrect admin password")
+
+        conn.close()
+
+        return redirect("/reset")
 
     # =========================
     # ARCHIVE CURRENT VOTES
     # =========================
+
     votes = cur.execute("""
         SELECT student_id, candidate_id, portfolio_id
         FROM votes
     """).fetchall()
 
     for v in votes:
+
         cur.execute("""
             INSERT INTO archived_votes(
                 student_id,
@@ -887,37 +996,94 @@ def reset():
                 portfolio_id
             )
             VALUES (?, ?, ?)
-        """, v)
+        """, (
+            v[0],
+            v[1],
+            v[2]
+        ))
 
     # =========================
-    # LOG RESET ACTION
+    # RESET VOTES
     # =========================
-    cur.execute("""
-        INSERT INTO reset_logs(admin, action)
-        VALUES (?, ?)
-    """, (
-        "admin",
-        "Full election reset"
-    ))
 
-    # =========================
-    # DELETE VOTES
-    # =========================
     cur.execute("DELETE FROM votes")
 
-    # unlock students
     cur.execute("""
         UPDATE students
         SET has_voted=0
     """)
 
+    # =========================
+    # LOG RESET
+    # =========================
+
+    cur.execute("""
+        INSERT INTO reset_logs(
+            admin,
+            action
+        )
+        VALUES (?, ?)
+    """, (
+        admin_username,
+        "Reset entire election"
+    ))
+
     conn.commit()
     conn.close()
 
-    from flask import flash
-    flash("Election reset completed successfully")
+    flash("Election reset successfully")
 
     return redirect("/dashboard")
+
+
+@app.route("/reset_admin_password", methods=["POST"])
+def reset_admin_password():
+
+    if "admin" not in session:
+        return redirect("/")
+
+    username = request.form.get("username")
+    new_password = request.form.get("new_password")
+
+    hashed = generate_password_hash(new_password)
+
+    conn = db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE admins
+        SET password=?
+        WHERE username=?
+    """, (
+        hashed,
+        username
+    ))
+
+    conn.commit()
+    conn.close()
+
+    flash("Admin password updated successfully")
+
+    return redirect("/dashboard")
+
+
+    cur.execute("""
+        UPDATE admins
+        SET password=?
+        WHERE username=?
+    """, (
+        hashed,
+        username
+    ))
+
+    conn.commit()
+    conn.close()
+
+    flash("Password reset successfully")
+
+    return redirect("/dashboard")
+
+
 
 @app.route("/thanks")
 def thanks():
@@ -1008,6 +1174,7 @@ def download_students():
 
     return send_file(file_path, as_attachment=True)
 
+
 @app.route("/voter_register")
 def voter_register():
 
@@ -1027,6 +1194,90 @@ def voter_register():
         "voter_register.html",
         students=students
     )
+
+@app.route("/create_admin", methods=["POST"])
+def create_admin():
+
+    if "admin" not in session:
+        return redirect("/")
+
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    can_students = 1 if request.form.get("students") else 0
+    can_candidates = 1 if request.form.get("candidates") else 0
+    can_results = 1 if request.form.get("results") else 0
+    can_settings = 1 if request.form.get("settings") else 0
+
+    hashed = generate_password_hash(password)
+
+    conn = db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO admins(
+            username,
+            password,
+            can_manage_students,
+            can_manage_candidates,
+            can_manage_results,
+            can_manage_settings
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        username,
+        hashed,
+        can_students,
+        can_candidates,
+        can_results,
+        can_settings
+    ))
+
+    conn.commit()
+    conn.close()
+
+    flash("Admin created successfully")
+
+    return redirect("/dashboard")
+
+
+
+@app.route("/admin_login", methods=["POST"])
+def admin_login():
+
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    conn = db()
+    cur = conn.cursor()
+
+    admin = cur.execute("""
+        SELECT *
+        FROM admins
+        WHERE username=?
+    """, (username,)).fetchone()
+
+    conn.close()
+
+    if admin and check_password_hash(admin[2], password):
+
+        session["admin"] = username
+
+        session["permissions"] = {
+            "students": admin[3],
+            "candidates": admin[4],
+            "results": admin[5],
+            "settings": admin[6]
+        }
+
+        return redirect("/dashboard")
+
+    flash("Invalid admin login")
+
+    return redirect("/")
+
+
+
 @app.route("/delete_student/<sid>")
 def delete_student(sid):
 

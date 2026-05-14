@@ -29,6 +29,7 @@
                    name="{{ pdata.id }}"
                    value="{{ c[0] }}"
                    required
+                   data-name="{{ c[1] }}"
                    style="display:none;"
                    onchange="nextPortfolio('{{ pdata.id }}')">
 
@@ -77,22 +78,85 @@
      class="text-center"
      style="display:none;">
 
-    <button class="btn btn-success btn-lg">
-        ✅ Submit Final Votes
+    <button type="button"
+            class="btn btn-warning btn-lg"
+            onclick="previewVotes()">
+
+        👀 Preview Votes
     </button>
 
 </div>
 
 </form>
 
+<!-- PREVIEW MODAL -->
+<div class="modal fade"
+     id="previewModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    ✅ Confirm Your Votes
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div id="previewContent"></div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                    Go Back
+                </button>
+
+                <button type="submit"
+                        form="voteForm"
+                        class="btn btn-success">
+
+                    ✅ Final Submit
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 <style>
+
 input[type="radio"]:checked + .candidate-card{
     border:3px solid #198754 !important;
     background:#d1e7dd;
     transform:scale(1.02);
     transition:0.2s;
 }
+
+.candidate-card{
+    transition:0.2s;
+}
+
 </style>
+
+
 
 <script>
 
@@ -126,7 +190,85 @@ function nextPortfolio(currentId){
             "submitSection"
         ).style.display = "block";
 
+        document.getElementById(
+            "submitSection"
+        ).scrollIntoView({
+            behavior:"smooth"
+        });
+
     }
+}
+</script>
+
+<script>
+
+function previewVotes(){
+
+    let preview = "";
+
+    portfolios.forEach(section => {
+
+        let title =
+            section.querySelector("h4").innerText;
+
+        let selected =
+            section.querySelector(
+                "input[type='radio']:checked"
+            );
+
+        if(selected){
+
+            let candidate =
+                selected.dataset.name;
+
+            preview += `
+                <div class="card p-3 mb-3 shadow-sm">
+
+                    <h5 class="text-primary">
+                        ${title}
+                    </h5>
+
+                    <p class="mb-0">
+                        <strong>${candidate}</strong>
+                    </p>
+
+                </div>
+            `;
+        }
+
+    });
+
+    preview += `
+        <div class="alert alert-info mt-3">
+            You can click <strong>Go Back</strong>
+            to edit your choices before final submission.
+        </div>
+    `;
+
+    document.getElementById(
+        "previewContent"
+    ).innerHTML = preview;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById("previewModal")
+    );
+
+    modal.show();
+
+    // =========================
+    // RESTORE PORTFOLIOS
+    // =========================
+    document.querySelectorAll(
+        '.portfolio-section'
+    ).forEach(section => {
+
+        section.style.display = "block";
+
+    });
+
+    document.getElementById(
+        "submitSection"
+    ).style.display = "block";
 }
 
 </script>
