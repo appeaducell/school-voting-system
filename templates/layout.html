@@ -18,7 +18,7 @@
         .header {
             background: #0d6efd;
             color: white;
-            padding: 20px;
+            padding: 5px;
             text-align: center;
         }
 
@@ -29,8 +29,8 @@
         .container-box {
             background: rgb(236, 234, 234);
             padding: 25px;
-            margin-top: 20px;
-            border-radius: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
             box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
         }
 
@@ -77,8 +77,8 @@
     {% if logo %}
 <img src="{{ url_for('static', filename='uploads/' + logo) }}"
      style="
-        width:200px;
-        height:200px;
+        width:100px;
+        height:100px;
         object-fit:contain;
      "
      class="mb-1">
@@ -95,17 +95,15 @@
 
 </marquee>
 
-    <p>Prefectorial Elections {{ election_year }}</p>
-
-    <div class="text-center mt-2">
+    <div class="text-center mt-1">
 
     <h5>
         ⏳ Voting Ends In
     </h5>
 
-    <h4 id="countdown"
+    <h5 id="countdown"
         style="font-weight:bold; color:rgb(238, 15, 15);">
-    </h4>
+    </h5>
 
 </div>
 

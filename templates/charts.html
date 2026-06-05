@@ -8,96 +8,174 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-{% for portfolio, data in portfolios.items() %}
+<!-- ================= GLOBAL PORTFOLIOS ================= -->
+
+{% if global_portfolios %}
+
+<h3 class="text-success mb-4">
+    GLOBAL PORTFOLIOS
+</h3>
+
+{% for portfolio, data in global_portfolios.items() %}
 
 <div class="card p-4 mb-5 shadow-sm">
 
-    <h3 class="text-primary mb-4">
-        {{ portfolio }}
-    </h3>
+```
+<h4 class="text-primary mb-4">
+    {{ portfolio }}
+</h4>
 
-    <!-- BAR CHART -->
-    <canvas id="bar{{ loop.index }}"
-            style="max-height:400px;">
-    </canvas>
+<canvas id="bar_global_{{ loop.index }}"
+        style="max-height:400px;">
+</canvas>
 
-    <br><br>
+<br><br>
 
-    <!-- PIE CHART -->
-    <canvas id="pie{{ loop.index }}"
-            style="max-height:400px;">
-    </canvas>
+<canvas id="pie_global_{{ loop.index }}"
+        style="max-height:400px;">
+</canvas>
+```
 
 </div>
 
 <script>
 
-const barCtx{{ loop.index }} =
+new Chart(
     document.getElementById(
-        'bar{{ loop.index }}'
-    );
+        "bar_global_{{ loop.index }}"
+    ),
+    {
+        type: "bar",
 
-new Chart(barCtx{{ loop.index }}, {
+        data: {
+            labels: {{ data["labels"] | tojson }},
+            datasets: [{
+                label: "Votes",
+                data: {{ data["votes"] | tojson }}
+            }]
+        },
 
-    type: 'bar',
-
-    data: {
-
-        labels: {{ data["labels"] | tojson }},
-
-        datasets: [{
-
-            label: 'Votes',
-
-            data: {{ data["votes"] | tojson }},
-
-            borderWidth: 1
-
-        }]
-    },
-
-    options: {
-
-        responsive: true,
-
-        scales: {
-
-            y: {
-                beginAtZero: true
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
         }
     }
-});
+);
 
-const pieCtx{{ loop.index }} =
+new Chart(
     document.getElementById(
-        'pie{{ loop.index }}'
-    );
+        "pie_global_{{ loop.index }}"
+    ),
+    {
+        type: "pie",
 
-new Chart(pieCtx{{ loop.index }}, {
+        data: {
+            labels: {{ data["labels"] | tojson }},
+            datasets: [{
+                data: {{ data["votes"] | tojson }}
+            }]
+        },
 
-    type: 'pie',
-
-    data: {
-
-        labels: {{ data["labels"] | tojson }},
-
-        datasets: [{
-
-            data: {{ data["votes"] | tojson }}
-
-        }]
-    },
-
-    options: {
-
-        responsive: true
-
+        options: {
+            responsive: true
+        }
     }
-});
+);
 
 </script>
 
 {% endfor %}
+
+{% endif %}
+
+<!-- ================= HOUSE PORTFOLIOS ================= -->
+
+{% if house_portfolios %}
+
+<hr class="my-5">
+
+<h3 class="text-primary mb-4">
+    HOUSE PORTFOLIOS
+</h3>
+
+{% for portfolio, data in house_portfolios.items() %}
+
+<div class="card p-4 mb-5 shadow-sm">
+
+```
+<h4 class="text-primary mb-4">
+    {{ portfolio }}
+</h4>
+
+<canvas id="bar_house_{{ loop.index }}"
+        style="max-height:400px;">
+</canvas>
+
+<br><br>
+
+<canvas id="pie_house_{{ loop.index }}"
+        style="max-height:400px;">
+</canvas>
+```
+
+</div>
+
+<script>
+
+new Chart(
+    document.getElementById(
+        "bar_house_{{ loop.index }}"
+    ),
+    {
+        type: "bar",
+
+        data: {
+            labels: {{ data["labels"] | tojson }},
+            datasets: [{
+                label: "Votes",
+                data: {{ data["votes"] | tojson }}
+            }]
+        },
+
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    }
+);
+
+new Chart(
+    document.getElementById(
+        "pie_house_{{ loop.index }}"
+    ),
+    {
+        type: "pie",
+
+        data: {
+            labels: {{ data["labels"] | tojson }},
+            datasets: [{
+                data: {{ data["votes"] | tojson }}
+            }]
+        },
+
+        options: {
+            responsive: true
+        }
+    }
+);
+
+</script>
+
+{% endfor %}
+
+{% endif %}
 
 {% endblock %}

@@ -1,86 +1,259 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2 class="text-center mb-1">🏆 Official Election Results</h2>
+<div class="report-cover">
 
-<!-- PRINT BUTTON -->
-<div class="text-end mb-1">
-    <button onclick="printResults()" class="btn btn-dark">
+```
+<img src="{{ url_for('static', filename='uploads/logo.png') }}"
+     class="school-logo">
+
+<h1>SEFWI WIAWSO HIGH SCHOOL</h1>
+
+<h3>PREFECTORIAL ELECTION RESULTS 2026</h3>
+
+<h2>🏆 Official Election Results</h2>
+```
+</div>
+
+<div class="text-end mb-3 no-print">
+    <button onclick="window.print()"
+            class="btn btn-dark">
         🖨️ Print / Save PDF
     </button>
 </div>
 
-{% for portfolio, candidates in portfolios.items() %}
-<h3 class="mt-5 mb-4 text-primary border-bottom pb-2">
+{% set counter = namespace(value=0) %}
+
+{% if global_portfolios %}
+
+{% for portfolio, candidates in global_portfolios.items() %}
+
+{% if counter.value == 0 %}
+
+<div class="print-page">
+{% endif %}
+
+<div class="portfolio-block">
+
+```
+<h4 class="portfolio-title">
     {{ portfolio }}
-</h3>
-    <!-- CANDIDATES -->
-    <div class="row">
+</h4>
+
+<div class="row">
 
     {% for c in candidates %}
-    <div class="col-md-4 text-center mb-2">
 
-<div class="card p-3 shadow-sm">
-            <!-- IMAGE -->
-            <div style="
-                width:100px;
-                height:150px;
-                margin:auto;
-                overflow:hidden;
-                border-radius:5px;
-                border:1px solid #ccc;
-                background:#f8f9fa;
-            ">
+    <div class="col-md-3 col-sm-4 col-6 mb-3">
 
-                {% if c.image %}
-                <img src="{{ url_for('static', filename='uploads/' + c.image) }}"
-                     style="
-                        width:100%;
-                        height:100%;
-                        object-fit:cover;
-                     ">
-                {% endif %}
+        <div class="candidate-card text-center">
 
-            </div>
+            {% if c.image %}
+            <img src="{{ url_for('static',
+                filename='uploads/' + c.image) }}"
+                class="candidate-image">
+            {% endif %}
 
             <div class="mt-2">
 
-                <strong>{{ c.name }}</strong><br>
+                <strong>{{ c.name }}</strong>
 
-                <div class="mt-1">
-                    Votes: <strong>{{ c.votes }}</strong>
+                <div>
+                    Votes: {{ c.votes }}
                 </div>
 
                 <div>
                     {{ c.percent }}%
                 </div>
 
-                <!-- PROGRESS BAR -->
-                <div class="progress mt-2">
-                    <div class="progress-bar"
-                         style="width:{{ c.percent }}%">
-                        {{ c.percent }}%
-                    </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+```
+</div>
+
+{% set counter.value = counter.value + 1 %}
+
+{% if counter.value == 2 %}
+
+</div>
+<div class="page-break"></div>
+{% set counter.value = 0 %}
+{% endif %}
+
+{% endfor %}
+
+{% endif %}
+
+{% if house_portfolios %}
+
+{% for portfolio, candidates in house_portfolios.items() %}
+
+{% if counter.value == 0 %}
+
+<div class="print-page">
+{% endif %}
+
+<div class="portfolio-block">
+
+```
+<h4 class="portfolio-title">
+    {{ portfolio }}
+</h4>
+
+<div class="row">
+
+    {% for c in candidates %}
+
+    <div class="col-md-3 col-sm-4 col-6 mb-3">
+
+        <div class="candidate-card text-center">
+
+            {% if c.image %}
+            <img src="{{ url_for('static',
+                filename='uploads/' + c.image) }}"
+                class="candidate-image">
+            {% endif %}
+
+            <div class="mt-2">
+
+                <strong>{{ c.name }}</strong>
+
+                <div>
+                    Votes: {{ c.votes }}
                 </div>
 
+                <div>
+                    {{ c.percent }}%
+                </div>
 
             </div>
 
         </div>
 
     </div>
+
     {% endfor %}
 
-    </div>
+</div>
+```
+</div>
 
+{% set counter.value = counter.value + 1 %}
+
+{% if counter.value == 2 %}
+
+</div>
+<div class="page-break"></div>
+{% set counter.value = 0 %}
+{% endif %}
 
 {% endfor %}
 
-<!-- PRINT -->
-<script>
-function printResults() {
-    window.print();
+{% endif %}
+
+<style>
+
+.report-cover{
+    text-align:center;
+    margin-bottom:30px;
 }
-</script>
+
+.school-logo{
+    width:90px;
+    margin-bottom:10px;
+}
+
+.portfolio-title{
+    border-bottom:1px solid #ccc;
+    padding-bottom:5px;
+    margin-bottom:15px;
+}
+
+.portfolio-block{
+    margin-bottom:30px;
+}
+
+.candidate-card{
+    border:1px solid #ddd;
+    border-radius:5px;
+    padding:10px;
+}
+
+.candidate-image{
+    width:100px;
+    height:140px;
+    object-fit:cover;
+    border:1px solid #ccc;
+}
+
+.page-break{
+    display:none;
+}
+
+
+@media print {
+
+    .no-print,
+    .sidebar,
+    nav,
+    footer,
+    .header,
+    marquee,
+    #countdown,
+    .countdown,
+    .timer,
+    .top-banner,
+    .top-header 
+    header{
+        display:none !important;
+    }
+
+    body{
+        margin:0;
+        padding:0;
+    }
+
+    .report-cover{
+        page-break-after:always;
+        margin-top:30px;
+    }
+
+    .school-logo{
+        width:70px;
+    }
+
+    .portfolio-block{
+        height:48%;
+        page-break-inside:avoid;
+        margin-bottom:10px;
+    }
+
+    .candidate-card{
+        border:1px solid #ccc;
+        padding:4px;
+        font-size:10px;
+        box-shadow:none !important;
+    }
+
+    .candidate-image{
+        width:55px;
+        height:75px;
+    }
+
+    .page-break{
+        display:block;
+        break-after:page;
+    }
+
+}
+
+</style>
 
 {% endblock %}
