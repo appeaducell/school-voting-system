@@ -1963,6 +1963,58 @@ def edit_candidate(cid):
     )
 
 
+@app.route(
+    "/edit_portfolio/<int:pid>",
+    methods=["GET", "POST"]
+)
+def edit_portfolio(pid):
+
+    if "admin" not in session:
+        return redirect("/")
+
+    conn = db()
+
+    if request.method == "POST":
+
+        name = request.form.get("name")
+
+        conn.execute("""
+            UPDATE portfolios
+            SET name=?
+            WHERE id=?
+        """, (
+            name,
+            pid
+        ))
+
+        conn.commit()
+        conn.close()
+
+        flash(
+            "Portfolio updated successfully"
+        )
+
+        return redirect(
+            "/dashboard?section=portfolios"
+        )
+
+    portfolio = conn.execute("""
+        SELECT *
+        FROM portfolios
+        WHERE id=?
+    """, (pid,)).fetchone()
+
+    conn.close()
+
+    return render_template(
+        "edit_portfolio.html",
+        portfolio=portfolio
+    )
+
+
+
+
+
 
 if __name__ == "__main__":
 

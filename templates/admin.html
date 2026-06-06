@@ -597,23 +597,43 @@
             <tr>
                 <th>Portfolio</th>
                 <th>Type</th>
+                <th>Actions</th>
             </tr>
 
         </thead>
 
         <tbody>
 
-        {% for p in global_portfolios %}
+       {% for p in global_portfolios %}
 
-        <tr>
+<tr>
 
-            <td>{{ p[1] }}</td>
+    <td>{{ p[1] }}</td>
 
-            <td>Global</td>
+    <td>Global</td>
 
-        </tr>
+    <td>
 
-        {% endfor %}
+        <a href="/edit_portfolio/{{ p[0] }}"
+           class="btn btn-primary btn-sm">
+
+            Edit
+
+        </a>
+
+        <a href="/delete_portfolio/{{ p[0] }}"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Delete this portfolio?')">
+
+            Delete
+
+        </a>
+
+    </td>
+
+</tr>
+
+{% endfor %}
 
         </tbody>
 
@@ -640,13 +660,32 @@
 
         {% for p in house_portfolios %}
 
-        <tr>
+ <tr>
 
-            <td>{{ p[1] }}</td>
+    <td>{{ p[1] }}</td>
 
-            <td>{{ p[4] }}</td>
+    <td>{{ p[4] }}</td>
 
-        </tr>
+    <td>
+
+        <a href="/edit_portfolio/{{ p[0] }}"
+           class="btn btn-primary btn-sm">
+
+            Edit
+
+        </a>
+
+        <a href="/delete_portfolio/{{ p[0] }}"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Delete this portfolio?')">
+
+            Delete
+
+        </a>
+
+    </td>
+
+</tr>
 
         {% endfor %}
 
