@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow p-4">
+
+        <h3 class="mb-4">
+            Edit Candidate
+        </h3>
+
+        <form method="POST"
+              enctype="multipart/form-data">
+
+            <label>
+                Candidate Name
+            </label>
+
+            <input type="text"
+                   name="name"
+                   value="{{ candidate[1] }}"
+                   class="form-control mb-3"
+                   required>
+
+            <label>
+                Portfolio
+            </label>
+
+            <select name="portfolio_id"
+                    class="form-control mb-3">
+
+                {% for p in portfolios %}
+
+                <option value="{{ p[0] }}"
+                {% if p[0] == candidate[2] %}
+                    selected
+                {% endif %}
+                >
+                    {{ p[1] }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+            {% if candidate[3] %}
+
+            <div class="mb-3">
+
+                <img src="{{ url_for(
+                    'static',
+                    filename='uploads/' + candidate[3]
+                ) }}"
+                width="150">
+
+            </div>
+
+            {% endif %}
+
+            <label>
+                Replace Photo
+            </label>
+
+            <input type="file"
+                   name="image"
+                   class="form-control mb-4">
+
+            <button class="btn btn-success">
+
+                Save Changes
+
+            </button>
+
+            <a href="/dashboard?section=candidates"
+               class="btn btn-secondary">
+
+                Cancel
+
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

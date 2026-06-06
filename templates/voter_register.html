@@ -28,6 +28,7 @@ body{
             <th>#</th>
             <th>Student ID</th>
             <th>Name</th>
+            <th>House</th>
             <th>Voted</th>
         </tr>
     </thead>
@@ -40,6 +41,7 @@ body{
         <td>{{ loop.index }}</td>
         <td>{{ s[0] }}</td>
         <td>{{ s[1] }}</td>
+        <td>{{ s[3] if s[3] else "-" }}</td>
 
         <td>
             {% if s[2] == 1 %}

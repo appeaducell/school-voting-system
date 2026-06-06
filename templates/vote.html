@@ -25,13 +25,14 @@
 
         <label style="cursor:pointer; width:100%;">
 
-            <input type="radio"
-                   name="{{ pdata.id }}"
-                   value="{{ c[0] }}"
-                   required
-                   data-name="{{ c[1] }}"
-                   style="display:none;"
-                   onchange="nextPortfolio('{{ pdata.id }}')">
+<input type="radio"
+       name="{{ pdata.id }}"
+       value="{{ c[0] }}"
+       required
+       data-name="{{ c[1] }}"
+       data-image="{{ url_for('static', filename='uploads/' + c[3]) if c[3] else '' }}"
+       style="display:none;"
+       onchange="nextPortfolio('{{ pdata.id }}')">
 
             <div class="candidate-card p-3 border rounded shadow-sm">
 
@@ -220,20 +221,47 @@ function previewVotes(){
 
             let candidate =
                 selected.dataset.name;
+            let image =
+                selected.dataset.image;
 
-            preview += `
-                <div class="card p-3 mb-3 shadow-sm">
+           preview += `
+<div class="card p-3 mb-3 shadow-sm">
 
-                    <h5 class="text-primary">
-                        ${title}
-                    </h5>
+    <h5 class="text-primary mb-3">
+        ${title}
+    </h5>
 
-                    <p class="mb-0">
-                        <strong>${candidate}</strong>
-                    </p>
+    <div class="row align-items-center">
 
-                </div>
-            `;
+        <div class="col-md-3 text-center">
+
+            ${
+                image
+                ? `<img src="${image}"
+                       style="
+                           width:120px;
+                           height:120px;
+                           object-fit:cover;
+                           border-radius:10px;
+                           border:1px solid #ccc;
+                       ">`
+                : ''
+            }
+
+        </div>
+
+        <div class="col-md-9">
+
+            <h5 class="mb-0">
+                ${candidate}
+            </h5>
+
+        </div>
+
+    </div>
+
+</div>
+`;
         }
 
     });
